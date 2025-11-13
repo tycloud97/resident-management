@@ -46,4 +46,16 @@ Các schema bám sát UI frontend: `Complaint`, `ComplaintLog`, `Resident`, `Use
 - Bảo mật: hash mật khẩu (bcrypt), JWT, RBAC theo `role`.
 - SLA/mức độ nghiêm trọng: cập nhật `severity`, log `SEVERITY_UPDATE`.
 - Dòng thời gian (logs): ghi `CREATE`, `STATUS_UPDATE`, `ASSIGN`, `ASSIGN_STAGE`, `COMMENT`.
+- Chạy dev server NestJS:
+
+  - cd backend
+  - npm install
+  - npm run dev
+
+- Swagger UI: http://localhost:3000/docs
+
+- Quy ước token dev cho guard:
+  - Authorization: `Bearer dev-admin-token` → role admin
+  - Authorization: `Bearer dev-staff-token` → role staff
+  - Authorization: `Bearer anything-else` → role resident
 
