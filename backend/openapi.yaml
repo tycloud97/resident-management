@@ -1,0 +1,522 @@
+openapi: 3.0.3
+info:
+  title: Resident Management API
+  version: 0.1.0
+  description: |
+    API cho hệ thống Quản lý Cư dân (RMS).
+
+    Mô tả dựa trên giao diện frontend đã triển khai: quản lý cư dân, phản ánh, phân công, mức độ nghiêm trọng, dòng thời gian, và dashboard.
+servers:
+  - url: http://localhost:3000
+    description: Local dev server
+tags:
+  - name: Auth
+  - name: Residents
+  - name: Complaints
+  - name: Dashboard
+  - name: Users
+security:
+  - {}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Role:
+      type: string
+      enum: [resident, staff, admin]
+    Severity:
+      type: string
+      enum: [LOW, MEDIUM, HIGH, CRITICAL]
+    ComplaintStatus:
+      type: string
+      enum: [NEW, IN_PROGRESS, RESOLVED, REJECTED]
+    Attachment:
+      type: object
+      properties:
+        id: { type: string }
+        url: { type: string, format: uri }
+        filename: { type: string }
+        mimeType: { type: string }
+        size: { type: integer, format: int64 }
+      required: [id, url, filename]
+    HouseholdMember:
+      type: object
+      properties:
+        id: { type: string }
+        fullName: { type: string }
+        relation: { type: string }
+        age: { type: integer, format: int32, nullable: true }
+        phone: { type: string, nullable: true }
+        photoUrl: { type: string, format: uri, nullable: true }
+      required: [id, fullName, relation]
+    Resident:
+      type: object
+      properties:
+        id: { type: string }
+        fullName: { type: string }
+        email: { type: string, format: email, nullable: true }
+        phone: { type: string, nullable: true }
+        building: { type: string }
+        apartment: { type: string }
+        note: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        avatarUrl: { type: string, format: uri, nullable: true }
+        images:
+          type: array
+          items: { $ref: '#/components/schemas/Attachment' }
+        members:
+          type: array
+          items: { $ref: '#/components/schemas/HouseholdMember' }
+      required: [id, fullName, building, apartment, createdAt]
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string, format: email }
+        name: { type: string }
+        role: { $ref: '#/components/schemas/Role' }
+        avatarUrl: { type: string, format: uri, nullable: true }
+      required: [id, email, name, role]
+    AuthResponse:
+      type: object
+      properties:
+        user: { $ref: '#/components/schemas/User' }
+        accessToken: { type: string }
+      required: [user, accessToken]
+    Complaint:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string }
+        residentId: { type: string }
+        building: { type: string }
+        apartment: { type: string }
+        type:
+          type: string
+          enum: [NOISE, MAINTENANCE, SECURITY, OTHER]
+        status: { $ref: '#/components/schemas/ComplaintStatus' }
+        assignedTo: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time, nullable: true }
+        closedAt: { type: string, format: date-time, nullable: true }
+        severity: { $ref: '#/components/schemas/Severity' }
+        stageAssignees:
+          type: object
+          description: Gán người phụ trách theo từng giai đoạn
+          properties:
+            NEW: { type: string, nullable: true }
+            IN_PROGRESS: { type: string, nullable: true }
+            RESOLVED: { type: string, nullable: true }
+            REJECTED: { type: string, nullable: true }
+        isAnonymous: { type: boolean, nullable: true }
+        contactName: { type: string, nullable: true }
+        contactPhone: { type: string, nullable: true }
+        contactEmail: { type: string, format: email, nullable: true }
+        attachments:
+          type: array
+          items: { $ref: '#/components/schemas/Attachment' }
+      required: [id, title, description, building, apartment, type, status, createdAt]
+    ComplaintLog:
+      type: object
+      properties:
+        id: { type: string }
+        complaintId: { type: string }
+        action: { type: string, description: 'CREATE|STATUS_UPDATE|ASSIGN|ASSIGN_STAGE|COMMENT|SEVERITY_UPDATE' }
+        message: { type: string, nullable: true }
+        performedBy: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        authorName: { type: string, nullable: true }
+        isAnonymous: { type: boolean, nullable: true }
+        attachments:
+          type: array
+          items: { $ref: '#/components/schemas/Attachment' }
+      required: [id, complaintId, action, createdAt]
+    ComplaintDetail:
+      type: object
+      properties:
+        complaint: { $ref: '#/components/schemas/Complaint' }
+        logs:
+          type: array
+          items: { $ref: '#/components/schemas/ComplaintLog' }
+      required: [complaint, logs]
+    ErrorResponse:
+      type: object
+      properties:
+        statusCode: { type: integer }
+        message: { type: string }
+      required: [statusCode, message]
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Đăng nhập
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+              required: [email, password]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/AuthResponse' } } } }
+        '401': { description: Sai thông tin đăng nhập, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /residents:
+    get:
+      tags: [Residents]
+      summary: Danh sách cư dân
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+          description: Tìm theo tên/email/điện thoại
+        - in: query
+          name: building
+          schema: { type: string }
+        - in: query
+          name: apartment
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Resident' }
+    post:
+      tags: [Residents]
+      summary: Tạo cư dân
+      description: Hỗ trợ upload avatar và nhiều ảnh (multipart/form-data)
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                fullName: { type: string }
+                email: { type: string, format: email }
+                phone: { type: string }
+                building: { type: string }
+                apartment: { type: string }
+                note: { type: string }
+                avatar: { type: string, format: binary }
+                photos:
+                  type: array
+                  items: { type: string, format: binary }
+                members:
+                  type: string
+                  description: JSON.stringify(Array<HouseholdMember without id>)
+              required: [fullName, building, apartment]
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName: { type: string }
+                email: { type: string, format: email }
+                phone: { type: string }
+                building: { type: string }
+                apartment: { type: string }
+                note: { type: string }
+                members:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      fullName: { type: string }
+                      relation: { type: string }
+                      age: { type: integer }
+                      phone: { type: string }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Resident' } } } }
+        '400': { description: Lỗi nhập liệu, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: Trùng (building+apartment), content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+  /residents/{id}:
+    get:
+      tags: [Residents]
+      summary: Chi tiết cư dân
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Resident' } } } }
+        '404': { description: Không tìm thấy }
+
+  /complaints:
+    get:
+      tags: [Complaints]
+      summary: Danh sách phản ánh (công khai)
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: status
+          schema: { $ref: '#/components/schemas/ComplaintStatus' }
+        - in: query
+          name: type
+          schema: { type: string, enum: [NOISE, MAINTENANCE, SECURITY, OTHER] }
+        - in: query
+          name: severity
+          schema: { $ref: '#/components/schemas/Severity' }
+        - in: query
+          name: building
+          schema: { type: string }
+        - in: query
+          name: apartment
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 100 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Complaint' }
+    post:
+      tags: [Complaints]
+      summary: Tạo phản ánh (công khai)
+      description: Hỗ trợ gửi ẩn danh và upload ảnh minh chứng
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                description: { type: string }
+                building: { type: string }
+                apartment: { type: string }
+                type: { type: string, enum: [NOISE, MAINTENANCE, SECURITY, OTHER] }
+                isAnonymous: { type: boolean }
+                contactName: { type: string }
+                contactPhone: { type: string }
+                contactEmail: { type: string, format: email }
+                severity: { $ref: '#/components/schemas/Severity' }
+                files:
+                  type: array
+                  items: { type: string, format: binary }
+              required: [title, description, building, apartment, type]
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                description: { type: string }
+                building: { type: string }
+                apartment: { type: string }
+                type: { type: string, enum: [NOISE, MAINTENANCE, SECURITY, OTHER] }
+                isAnonymous: { type: boolean }
+                contactName: { type: string }
+                contactPhone: { type: string }
+                contactEmail: { type: string, format: email }
+                severity: { $ref: '#/components/schemas/Severity' }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Complaint' } } } }
+        '400': { description: Lỗi nhập liệu }
+
+  /complaints/{id}:
+    get:
+      tags: [Complaints]
+      summary: Chi tiết phản ánh + dòng thời gian (công khai)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ComplaintDetail' }
+        '404': { description: Không tìm thấy }
+
+  /complaints/{id}/status:
+    patch:
+      tags: [Complaints]
+      summary: Cập nhật trạng thái (staff/admin)
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { $ref: '#/components/schemas/ComplaintStatus' }
+                message: { type: string }
+              required: [status]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Complaint' } } } }
+        '400': { description: Lỗi }
+        '401': { description: Chưa đăng nhập }
+        '403': { description: Không có quyền }
+
+  /complaints/{id}/assign:
+    patch:
+      tags: [Complaints]
+      summary: Phân công người xử lý chính (staff/admin)
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assignedTo: { type: string }
+              required: [assignedTo]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Complaint' } } } }
+
+  /complaints/{id}/assign-stage:
+    patch:
+      tags: [Complaints]
+      summary: Phân công theo giai đoạn (staff/admin)
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stage: { $ref: '#/components/schemas/ComplaintStatus' }
+                assignedTo: { type: string }
+              required: [stage, assignedTo]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Complaint' } } } }
+
+  /complaints/{id}/severity:
+    patch:
+      tags: [Complaints]
+      summary: Cập nhật mức độ nghiêm trọng (staff/admin)
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                severity: { $ref: '#/components/schemas/Severity' }
+              required: [severity]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Complaint' } } } }
+
+  /complaints/{id}/comments:
+    post:
+      tags: [Complaints]
+      summary: Thêm bình luận (công khai), hỗ trợ ảnh đính kèm
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                message: { type: string }
+                authorName: { type: string }
+                isAnonymous: { type: boolean }
+                files:
+                  type: array
+                  items: { type: string, format: binary }
+              required: [message]
+          application/json:
+            schema:
+              type: object
+              properties:
+                message: { type: string }
+                authorName: { type: string }
+                isAnonymous: { type: boolean }
+              required: [message]
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/ComplaintLog' } } } }
+
+  /dashboard/stats:
+    get:
+      tags: [Dashboard]
+      summary: Thống kê tổng quan (công khai)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalResidents: { type: integer }
+                  openComplaints: { type: integer }
+                  inProgress: { type: integer }
+                  resolved: { type: integer }
+
+  /users:
+    get:
+      tags: [Users]
+      summary: Danh sách người dùng
+      parameters:
+        - in: query
+          name: role
+          schema: { $ref: '#/components/schemas/Role' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/User' }
+
