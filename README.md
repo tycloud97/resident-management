@@ -1,139 +1,307 @@
-# Resident Management System -- Technical Fullstack Assignment (MVP)
+# Resident Management System (MVP)
 
-## 1. Painpoint & Problem Solving
+## 📌 Overview
 
-### 1.1. Painpoint 1 -- Dữ liệu phân tán, thiếu đồng bộ (Zalo + Excel)
-
-**Vấn đề:**
-- Thông tin cư dân nằm rải rác ở nhiều nơi (Zalo, Excel).
-- Dữ liệu dễ trùng lặp, thiếu hoặc sai.
-- Không có hệ thống tập trung để truy xuất hoặc quản lý hiệu quả.
-
-**Giải pháp:**
- Trang quản lý cư dân với bảng dữ liệu, bộ lọc, tìm kiếm, form
-nhập liệu rõ ràng.
-- **Backend**: API RESTful với validation, kiểm tra trùng dữ liệu và
-chuẩn hóa format.
-- **Database**: Bảng `residents` có unique index theo (building,
-apartment_number).
+The Resident Management System (RMS) is an MVP fullstack application
+designed to help an apartment management board streamline resident
+information and complaint handling.
+The current workflow uses **Zalo** and **Excel**, causing inconsistent
+data, slow processing, and no centralized system.
+This MVP introduces a structured, scalable, and maintainable solution
+using a modern tech stack.
 
 ------------------------------------------------------------------------
 
-### 1.2. Painpoint 2 -- Xử lý phản ánh chậm, thiếu quy trình
+# 1. Painpoints & Solutions
 
-**Vấn đề:**
-- Không có quy trình tình trạng phản ánh (New → In Progress →
-Resolved).
-- Không có mã phiếu, tracking, hoặc báo cáo tình trạng.
+## 1.1 Data scattered across Zalo & Excel
 
-**Giải pháp:**
-- **UI**:
-- Cư dân: tạo - xem phản ánh.
-- BQL: bảng quản lý phản ánh, đổi trạng thái, gán người xử lý.
-- **Backend**: API tạo phản ánh, cập nhật trạng thái, log lịch sử.
-- **Database**: Bảng `complaints` + `complaint_logs`.
+**Painpoint:**
+- Resident information stored in multiple Excel files and chat logs →
+inconsistent data.
+- Hard to search, filter, or maintain accuracy.
 
-------------------------------------------------------------------------
-
-### 1.3. Painpoint 3 -- Thiếu log lịch sử
-
-**Giải pháp:**
-- Tự động ghi log vào `complaint_logs` khi có cập nhật.
-- UI hiển thị timeline xử lý.
+**Solution:**
+- Centralized resident database.
+- UI for listing, filtering, adding, and editing residents.
+- API validation & unique constraints (building + apartment).
 
 ------------------------------------------------------------------------
 
-### 1.4. Painpoint 4 -- Thiếu phân quyền & bảo mật
+## 1.2 Slow, untracked complaint handling
 
-**Giải pháp:**
-- Roles: Resident, Staff, Admin.
-- Backend: Auth bằng JWT, middleware kiểm tra role.
-- UI: Ẩn/hiện menu theo role.
-- DB: Bảng `users` với password hash.
+**Painpoint:**
+- No ticket tracking.
+- No complaint status workflow.
+- No audit logs.
 
-------------------------------------------------------------------------
-
-### 1.5. Painpoint 5 -- Không có thống kê
-
-**Giải pháp:**
-- Dashboard: số lượng phản ánh theo trạng thái, loại, thời gian.
-- Backend: API aggregation.
-- DB: Thêm index `created_at`, `status` để tăng tốc.
+**Solution:**
+- Complaint creation & tracking module.
+- Clear workflow: **NEW → IN_PROGRESS → RESOLVED/REJECTED**.
+- Automatic logging (ComplaintLog).
+- Dashboard with statistics.
 
 ------------------------------------------------------------------------
 
-### 1.6. Painpoint 6 -- UX kém, thiếu accessibility (WCAG)
+## 1.3 No access control or user roles
 
-**Giải pháp:**
-- Responsive bằng grid/flex.
-- Tuân thủ WCAG:
-- Độ tương phản tốt.
-- Có label & aria-label.
-- Điều hướng bằng keyboard.
+**Painpoint:**
+- Too much information shared in Zalo groups.
+- No user authentication or role-based access.
 
-------------------------------------------------------------------------
-
-## 2. Module Analysis & Product Development Plan
-
-### 2.1. User Roles
-
--   **Resident**
--   **Staff**
--   **Admin**
+**Solution:**
+- Authentication (JWT).
+- RBAC: **Resident**, **Staff**, **Admin**.
+- Access restrictions per role.
 
 ------------------------------------------------------------------------
 
-### 2.2. Entities
+## 1.4 Poor user experience & accessibility
+
+**Painpoint:**
+- Non-responsive layouts.
+- No accessibility standards (WCAG).
+
+**Solution:**
+- Responsive design using grid/flex.
+- WCAG basics: labels, semantic HTML, keyboard navigation, contrast.
+
+------------------------------------------------------------------------
+
+# 2. Module Analysis & Product Development Plan
+
+## 2.1 User Roles
+
+-   **Resident:** submit & view complaints.
+-   **Staff:** manage residents & complaints.
+-   **Admin:** manage users, permissions, system settings.
+
+------------------------------------------------------------------------
+
+## 2.2 Key Modules
+
+1.  Authentication & Authorization
+2.  Resident Management
+3.  Complaint Management
+4.  Announcement (optional)
+5.  Dashboard & Reporting
+6.  System Settings (future)
+
+------------------------------------------------------------------------
+
+## 2.3 Entities
 
 -   `User`
 -   `Resident`
 -   `Complaint`
 -   `ComplaintLog`
--   `Announcement`
--   `Attachment`
+-   `Announcement` (optional)
+-   `Attachment` (optional)
 
 ------------------------------------------------------------------------
 
-### 2.3. System Modules
+## 2.4 Development Plan
 
-1.  **Authentication & Authorization**
-2.  **Resident Management**
-3.  **Complaint Management**
-4.  **Announcement Module (optional)**
-5.  **Dashboard & Reporting**
-6.  **System Settings (future)**
+### Phase 0 -- Setup
 
-------------------------------------------------------------------------
+-   Initialize repo, configure project structure, tools, linters.
 
-### 2.4. Development Plan (MVP)
+### Phase 1 -- Authentication
 
-#### Phase 0 -- Setup
+-   Login API + JWT
+-   Frontend login page
+-   Layout & routing
 
--   Khởi tạo project, GitHub repo, cấu trúc clean code.
+### Phase 2 -- Resident Management
 
-#### Phase 1 -- Auth
+-   CRUD operations
+-   List + filter UI
 
--   Login, JWT middleware, responsive layout.
+### Phase 3 -- Complaint Management (Core workflow)
 
-#### Phase 2 -- Resident Management
+-   Resident submission flow
+-   Staff management flow
+-   Auto logging
 
--   CRUD cư dân + UI bảng danh sách.
+### Phase 4 -- Dashboard
 
-#### Phase 3 -- Complaint Management
+-   Statistics API + UI
 
--   Tạo / xem / xử lý phản ánh.
--   Log lịch sử.
+### Phase 5 -- Finalization
 
-#### Phase 4 -- Dashboard
-
--   API thống kê + UI biểu đồ.
-
-#### Phase 5 -- Finalization
-
--   README hoàn chỉnh.
--   Validation & error handling nâng cao.
--   Tối ưu performance + accessibility.
+-   README
+-   Cleanup
+-   Accessibility fixes
 
 ------------------------------------------------------------------------
 
-## End of Document
+# 3. Technical Requirements
+
+## 3.1 Proposed Tech Stack
+
+### Frontend
+
+-   **React + TypeScript**
+-   **TailwindCSS** for responsive UI
+-   **React Query** for API state management
+-   **Vite** for fast build
+
+### Backend
+
+-   **Node.js + NestJS** (or Express)
+-   RESTful API
+-   Authentication via **JWT**
+
+### Database
+
+-   **PostgreSQL**
+-   ORM: **Prisma** or **TypeORM**
+
+### Others
+
+-   ESLint + Prettier
+-   Docker for local development
+-   Postman collection for API testing (optional)
+
+------------------------------------------------------------------------
+
+## 3.2 High-Level UI Architecture
+
+-   Component-based structure
+-   Feature-based folders
+-   Shared components: `Modal`, `DataTable`, `FormInput`, `StatusBadge`
+-   Responsive & accessible (WCAG)
+
+------------------------------------------------------------------------
+
+## 3.3 Entities & Relationships (ERD)
+
+    User (1) ---- (0..1) Resident
+    Resident (1) ---- (N) Complaint
+    Complaint (1) ---- (N) ComplaintLog
+    User (staff/admin) (1) ---- (N) ComplaintLog (performed_by)
+
+------------------------------------------------------------------------
+
+## 3.4 Security & Roles
+
+-   Password hashing (bcrypt)
+-   JWT Access Tokens
+-   Role-based authorization middleware
+-   Input validation & sanitization
+-   HTTPS in production
+
+------------------------------------------------------------------------
+
+## 3.5 Code Structure (for maintainability)
+
+### Backend
+
+    src/
+      auth/
+      users/
+      residents/
+      complaints/
+      complaint-logs/
+      announcements/
+      common/
+
+### Frontend
+
+    src/
+      features/
+        auth/
+        residents/
+        complaints/
+        dashboard/
+      components/
+      api/
+      utils/
+      routes/
+
+------------------------------------------------------------------------
+
+## 3.6 Deployment Strategy
+
+### MVP Deployment
+
+-   Backend: Docker + Render/Railway/Fly.io
+-   Frontend: Vercel/Netlify
+-   Database: Managed PostgreSQL (Supabase/Railway)
+
+### Scalability
+
+-   Backend stateless → horizontal scaling
+-   DB with proper indexing
+-   CDN for frontend assets
+
+------------------------------------------------------------------------
+
+## 3.7 Future Extension Ideas
+
+-   Online payment (service fees)
+-   Facility booking (gym, BBQ, meeting room)
+-   Push notifications (email/SMS/app)
+-   Multi-building management
+-   Advanced reporting + audit logs
+
+------------------------------------------------------------------------
+
+# 4. Feature Scope (Chosen Feature)
+
+## Chosen Feature: **Complaint Management** (End-to-End)
+
+### Backend Includes:
+
+-   Create complaint
+-   Get resident complaints
+-   Staff: get all complaints (with filters)
+-   Update status / assign staff
+-   Complaint logs
+
+### Frontend Includes:
+
+-   Resident:
+    -   Submit form
+    -   My complaints page
+    -   Complaint detail view
+-   Staff/Admin:
+    -   Complaint management table
+    -   Filter by type/status/time
+    -   Detail page with timeline & update form
+
+------------------------------------------------------------------------
+
+# 5. Setup Instructions
+
+## Backend
+
+    npm install
+    npm run dev
+
+Create `.env`:
+
+    DATABASE_URL=postgres://...
+    JWT_SECRET=your-secret
+
+## Frontend
+
+    npm install
+    npm run dev
+
+------------------------------------------------------------------------
+
+# 6. Conclusion
+
+This MVP demonstrates:
+- Clean architecture
+- Scalable design
+- Good UI/UX principles
+- Realistic workflow solving actual painpoints
+- Fullstack understanding (DB → API → frontend)
+
+------------------------------------------------------------------------
+
+# 7. License
+
+MIT
