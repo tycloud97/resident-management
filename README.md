@@ -286,8 +286,69 @@ Create `.env`:
 
 ## Frontend
 
+Implemented with React + TypeScript + Vite + Tailwind and React Query. The frontend supports RESTful API integration and a built‑in mock mode to run without backend.
+
+Public pages (no login required):
+
+- `/dashboard` – Bảng điều khiển (thống kê tổng quan)
+- `/complaints` – Danh sách phản ánh
+- `/complaints/new` – Gửi phản ánh (hỗ trợ ẩn danh)
+- `/complaints/:id` – Chi tiết phản ánh + bình luận
+
+Management pages (login required):
+
+- `/manage/dashboard`, `/manage/residents`, `/manage/complaints`, `/manage/residents/:id`
+
+Quick start:
+
+    cd frontend
+    cp .env.example .env.local    # adjust if needed
     npm install
     npm run dev
+
+Environment variables (frontend/.env.local):
+
+- `VITE_APP_NAME`: App name shown in header
+- `VITE_API_BASE_URL`: Backend base URL (e.g., http://localhost:3000)
+- `VITE_USE_MOCKS`: `true` to run fully with mock data, no backend required
+
+Mock accounts (when VITE_USE_MOCKS=true):
+
+- Admin: `admin@example.com` / `password`
+- Staff: `staff@example.com` / `password`
+- Resident: `res@example.com` / `password`
+
+Frontend structure:
+
+    frontend/
+      src/
+        features/
+          auth/           # Auth context + login page
+          residents/      # Residents list, form, detail
+          complaints/     # Complaints list, form, detail, timeline
+          dashboard/      # Stats overview
+        components/       # Reusable UI (Button, Input, DataTable...)
+        api/              # HTTP client, REST modules, mock adapters
+        routes/           # ProtectedRoute, RoleGuard
+        main.tsx, App.tsx, index.css
+
+Key design notes:
+
+- Clean code and modular structure (feature‑based folders, shared UI)
+- RESTful API design (separate modules per resource, query/mutation via React Query)
+- Input validation and graceful error handling on forms and API layer
+- Security: JWT bearer injection, minimal token surface (demo uses localStorage; prefer httpOnly cookies in production)
+- Performance: React Query caching, minimal re‑renders, Vite for fast HMR
+- Accessibility: semantic HTML, labels, focus styles, skip‑to‑content, color contrast friendly Tailwind defaults
+- Responsive UI via Tailwind utility classes (flex/grid, responsive modifiers)
+
+Common scripts:
+
+    npm run dev       # start dev server
+    npm run build     # production build
+    npm run preview   # preview production build
+    npm run lint      # ESLint (WCAG via jsx-a11y included)
+    npm run typecheck # TypeScript checks
 
 ------------------------------------------------------------------------
 
