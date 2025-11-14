@@ -97,7 +97,6 @@ export class ComplaintsService {
     const [rows] = await pool.query('SELECT * FROM complaints WHERE id = ? LIMIT 1', [id])
     const row = (rows as any[])[0]
     if (!row) throw new NotFoundException()
-    console.log(row)
     const complaint = rowToComplaint(row)
     const [logRows] = await pool.query('SELECT * FROM complaint_logs WHERE complaint_id = ? ORDER BY created_at ASC', [id])
     const logs = (logRows as any[]).map((r) => ({
@@ -187,7 +186,6 @@ export class ComplaintsService {
       ? files.map((f) => ({ id: f.filename, url: `/uploads/${f.filename}`, filename: f.originalname, mimeType: f.mimetype, size: f.size }))
       : []
     const logId = randomUUID()
-    console.log(body)
     await pool.execute(
       `INSERT INTO complaint_logs (id, complaint_id, action, message, performed_by, author_name, is_anonymous, attachments, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,

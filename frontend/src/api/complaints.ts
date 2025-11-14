@@ -56,15 +56,27 @@ export async function addComplaintComment(id: string, message: string, authorNam
 
 export async function assignComplaint(id: string, staffUserId: string) {
   if (IS_MOCK) return mockAssignComplaint(id, staffUserId)
-  return http<Complaint>(`/complaints/${id}/assign`, { method: 'PATCH', body: JSON.stringify({ assignedTo: staffUserId }) })
+  return http<Complaint>(`/complaints/${id}/assign`, {
+    method: 'PATCH',
+    body: JSON.stringify({ assignedTo: staffUserId }),
+    auth: true,
+  })
 }
 
 export async function assignStageHandler(id: string, stage: ComplaintStatus, staffUserId: string) {
   if (IS_MOCK) return mockAssignStageHandler(id, stage, staffUserId)
-  return http<Complaint>(`/complaints/${id}/assign-stage`, { method: 'PATCH', body: JSON.stringify({ stage, assignedTo: staffUserId }) })
+  return http<Complaint>(`/complaints/${id}/assign-stage`, {
+    method: 'PATCH',
+    body: JSON.stringify({ stage, assignedTo: staffUserId }),
+    auth: true,
+  })
 }
 
 export async function updateComplaintSeverity(id: string, severity: Severity) {
   if (IS_MOCK) return mockUpdateComplaintSeverity(id, severity)
-  return http<Complaint>(`/complaints/${id}/severity`, { method: 'PATCH', body: JSON.stringify({ severity }) })
+  return http<Complaint>(`/complaints/${id}/severity`, {
+    method: 'PATCH',
+    body: JSON.stringify({ severity }),
+    auth: true,
+  })
 }
