@@ -48,29 +48,29 @@
 
 ## 2.4 Roadmap
 
-### Phase 0 – Project setup
+### Phase 0 – Project setup (2 days)
 - Initialize repository, define backend/frontend structure.
 - Configure TypeScript, ESLint, Prettier, Docker for development.
+- Set up AWS account, cloud resources, CI/CD pipeline.
 
-### Phase 1 – Authentication
+### Phase 1 – Authentication (3 days)
 - Implement login API and issue JWT.
 - Build login page on the frontend and protect routes.
 - Set up basic layout and navigation.
 
-### Phase 2 – Resident Management
+### Phase 2 – Resident Management (4 days)
 - Implement resident CRUD APIs.
 - Build list and form screens with useful filters.
 
-### Phase 3 – Complaint Management (core)
+### Phase 3 – Complaint Management (core) (6 days)
 - Implement the resident complaint submission flow.
 - Implement the staff/admin handling flow (receive, update status, log actions).
 - Automatically write to `ComplaintLog` whenever status changes.
 
-### Phase 4 – Dashboard
+### Phase 4 – Dashboard (3 days)
 - Provide statistics APIs.
 - Build a simple dashboard view with key metrics and charts.
 
-### Phase 5 – Finalization
+### Phase 5 – Finalization (2 days)
 - Review and refine UI/UX and accessibility.
 - Update documentation and clean up the codebase.
-
