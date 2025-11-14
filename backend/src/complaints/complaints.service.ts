@@ -42,7 +42,7 @@ export class ComplaintsService {
     return { data }
   }
 
-  async create(dto: CreateComplaintDto, files: Express.Multer.File[]) {
+  async create(dto: CreateComplaintDto, files: any[]) {
     const id = randomUUID()
     const createdAt = new Date()
     const attachments = files?.length
@@ -176,9 +176,9 @@ export class ComplaintsService {
         logId,
         id,
         'COMMENT',
-        body.message || null,
-        body.performedBy || null,
-        body.authorName || null,
+        body.message,
+        body.performedBy,
+        body.authorName,
         body.isAnonymous === 'true' || body.isAnonymous === true ? 1 : 0,
         attachments.length ? JSON.stringify(attachments) : null,
         now,

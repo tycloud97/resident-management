@@ -112,7 +112,6 @@ components:
             IN_PROGRESS: { type: string, nullable: true }
             RESOLVED: { type: string, nullable: true }
             REJECTED: { type: string, nullable: true }
-        isAnonymous: { type: boolean, nullable: true }
         contactName: { type: string, nullable: true }
         contactPhone: { type: string, nullable: true }
         contactEmail: { type: string, format: email, nullable: true }
@@ -130,7 +129,6 @@ components:
         performedBy: { type: string, nullable: true }
         createdAt: { type: string, format: date-time }
         authorName: { type: string, nullable: true }
-        isAnonymous: { type: boolean, nullable: true }
         attachments:
           type: array
           items: { $ref: '#/components/schemas/Attachment' }
@@ -470,7 +468,6 @@ paths:
               properties:
                 message: { type: string }
                 authorName: { type: string }
-                isAnonymous: { type: boolean }
                 files:
                   type: array
                   items: { type: string, format: binary }

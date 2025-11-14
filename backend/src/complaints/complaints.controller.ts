@@ -20,7 +20,7 @@ export class ComplaintsController {
 
   @Post()
   @UseInterceptors(FilesInterceptor('files'))
-  create(@Body() dto: CreateComplaintDto, @UploadedFiles() files: Express.Multer.File[]) {
+  create(@Body() dto: CreateComplaintDto, @UploadedFiles() files: any[]) {
     return this.complaintsService.create(dto, files)
   }
 

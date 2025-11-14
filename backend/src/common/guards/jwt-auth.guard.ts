@@ -4,6 +4,7 @@ import { Role } from '../enums'
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
+    // TODO 2025.11.14: Temporary implementation for testing, will implement JWT authentication later.
     const req = context.switchToHttp().getRequest()
     const auth = req.headers['authorization'] as string | undefined
     if (!auth || !auth.startsWith('Bearer ')) throw new UnauthorizedException()
