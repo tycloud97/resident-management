@@ -11,17 +11,10 @@ and maintainability.
 
 ## 📚 Documentation
 
-- **1. Pain Points & Solutions**  
-  `docs/01-painpoints-and-solutions.md`
-
-- **2. Module Analysis & Product Development Plan**  
-  `docs/02-module-analysis-and-plan.md`
-
-- **3. Technical Requirements**  
-  `docs/03-technical-requirements.md`
-
-- **4. Feature Scope – Complaint Management**  
-  `docs/04-feature-scope-complaint-management.md`
+- [**1. Pain Points & Solutions**](docs/01-painpoints-and-solutions.md)
+- [**2. Module Analysis & Product Development Plan**](docs/02-module-analysis-and-plan.md)
+- [**3. Technical Requirements**](docs/03-technical-requirements.md)
+- [**4. Feature Scope – Complaint Management**](docs/04-feature-scope-complaint-management.md)
 
 ---
 
