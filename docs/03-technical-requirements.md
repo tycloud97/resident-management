@@ -16,6 +16,9 @@
 ### Database
 - **MySQL** – familiar relational database, easy to deploy and operate.
 
+### Cloud
+- **AWS (Singapore region)** – ECS (or Fargate) for backend, S3 + CloudFront for frontend hosting, RDS MySQL for the database, CloudWatch for logging/metrics, and SSM/Secrets Manager for configuration and secrets. 
+
 ### Tooling
 - ESLint + Prettier – consistent code style and fewer bugs.
 - Docker – consistent development environment.
@@ -143,6 +146,10 @@ src/
 - Backend: deploy a stateless service (e.g. on ECS or equivalent).
 - Frontend: build static assets and host on S3 + CloudFront (or equivalent).
 - Database: RDS MySQL with regular snapshot backups.
+
+#### AWS architecture diagram
+
+![AWS](./imgs/AWS.drawio.png)
 
 ### Scalability
 - Stateless backend → easy horizontal scaling.
