@@ -25,25 +25,65 @@
 
 ## 3.2 High-level UI architecture
 
-- Organize by feature: `auth`, `residents`, `complaints`, `dashboard`.
-- Extract shared UI components: `Modal`, `DataTable`, `FormInput`, `StatusBadge`, `Button`, etc.
-- Keep heavy logic out of components; use hooks/services for API calls.
-- Design mobile-first and ensure core screens work well on phones.
+At a high level, the frontend is organized into four layers:
+
+```text
+┌──────────────────────────────┐
+│      Presentation Layer      │  React components & screens
+├──────────────────────────────┤
+│   State Management Layer     │  React Query cache, AuthContext
+├──────────────────────────────┤
+│    Service / API Layer       │  HTTP client, API modules
+├──────────────────────────────┤
+│   Cross-cutting Concerns     │  Auth, routing, layout, UI kit
+└──────────────────────────────┘
+```
+
+### Presentation Layer
+
+- Location: `src/features/*`, `src/components/Layout`, `src/components/UI`.
+- Renders pages (Dashboard, Residents, Complaints, Login) and layouts (`PublicLayout`, `AppLayout`).
+- Uses reusable UI kit components; keeps business logic minimal and focused on user interaction.
+
+### State Management Layer
+
+- Location: `features/auth/AuthContext.tsx` and React Query hooks in `features/*`.
+- Manages authentication/session (`AuthContext`) and server state (lists, details, timelines).
+- Keeps views in sync with backend using `useQuery` / `useMutation` and a shared query cache.
+
+### Service / API Layer
+
+- Location: `src/api/*` (e.g. `client.ts`, `complaints.ts`, `residents.ts`, `auth.ts`, `dashboard.ts`, `mock.ts`).
+- Provides a shared HTTP client and typed API functions (`listComplaints`, `getComplaint`, `login`, etc.).
+- Exposes optional mock adapters so the UI can run without a real backend.
+
+### Cross-cutting Concerns
+
+- Location: `src/routes/*`, `features/auth`, `components/Layout`, shared utilities.
+- Handles routing and access control (`App.tsx`, `ProtectedRoute`, `RoleGuard`) and global layout.
+- Provides consistent styling and behavior across screens via TailwindCSS and the shared UI kit.
 
 ---
 
 ## 3.3 Key entities & relationships
 
-```text
-User (1)        ── (0..1) Resident
-Resident (1)    ── (N)    Complaint
-Complaint (1)   ── (N)    ComplaintLog
-User (staff/admin) (1) ─ (N) ComplaintLog (performed_by)
-```
+The main entities in the MVP are:
 
+- `User` – application user account (email, name, role).
+- `Resident` – resident profile and apartment (building, apartment, note, images, household members).
+- `Complaint` – resident complaint (title, description, type, severity, status, optional `residentId`, attachments, contact info, stage assignees).
+- `ComplaintLog` – timeline entry for a complaint (action, message, performedBy, authorName, isAnonymous, attachments).
+
+### ERD
+
+![ERD](./imgs/ERD.drawio.png)
+
+Notes:
 - Each `User` can be linked to at most one `Resident`.
 - Each `Resident` can create many `Complaint` records.
 - Each action on a complaint is stored as a `ComplaintLog` entry.
+- Complaints can be anonymous, so `residentId` is optional; building + apartment still identify the unit.
+- `performedBy` on `ComplaintLog` references the staff/admin `User` when available.
 
 ---
 
@@ -118,4 +158,3 @@ src/
 - Notifications via email/SMS/mobile app.
 - Manage multiple buildings or complexes.
 - Advanced reporting and detailed audit logs.
-

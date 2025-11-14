@@ -33,6 +33,19 @@ export async function initDb() {
 
   // Ensure tables exist
   await pool.execute(`
+    CREATE TABLE IF NOT EXISTS users (
+      id varchar(36) PRIMARY KEY,
+      username varchar(100) NOT NULL,
+      password_hash varchar(255) NOT NULL,
+      role enum('resident', 'staff', 'admin') NOT NULL,
+      resident_id varchar(36) DEFAULT NULL,
+      created_at datetime NOT NULL,
+      updated_at datetime DEFAULT NULL,
+      UNIQUE KEY uniq_username (username)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `)
+
+  await pool.execute(`
     CREATE TABLE IF NOT EXISTS residents (
       id VARCHAR(36) PRIMARY KEY,
       full_name VARCHAR(255) NOT NULL,
