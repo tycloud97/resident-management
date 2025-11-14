@@ -1,9 +1,4 @@
 # 4. Feature Scope – Complaint Management (MVP)
-
-This document describes what will be delivered in the Complaint Management module for the MVP, based on the current source code.
-
----
-
 ## 4.1 User journeys in this module
 
 ### Resident (public flow)
@@ -38,3 +33,23 @@ The backend API for this module is defined in `backend/openapi.yaml` under the *
 - `POST /complaints/{id}/comments` – add a new comment with optional attachments (supports anonymous comments).
 
 ### 4.3 Frontend Screenshot
+
+#### 1. Create a new complaint
+
+![alt text](./imgs/image-1.png)
+
+![alt text](./imgs/image-4.png)
+
+#### 1. Login with admin
+
+![alt text](./imgs/image-3.png)
+
+#### 3. List of complaint
+
+![alt text](./imgs/image-5.png)
+
+#### 4. Update status and assign employee
+
+![alt text](./imgs/image-6.png)
+
+![alt text](./imgs/image-7.png)
