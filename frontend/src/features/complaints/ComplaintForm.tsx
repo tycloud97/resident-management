@@ -24,7 +24,6 @@ export default function ComplaintForm() {
     isAnonymous: true,
     contactName: '',
     contactPhone: '',
-    contactEmail: '',
     severity: 'MEDIUM' as 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL',
   })
   const [files, setFiles] = useState<File[]>([])
@@ -36,7 +35,6 @@ export default function ComplaintForm() {
       setForm((s) => ({
         ...s,
         contactName: s.contactName || user.name,
-        contactEmail: s.contactEmail || user.email,
       }))
     }
   }, [user, form.isAnonymous])
@@ -54,8 +52,6 @@ export default function ComplaintForm() {
     if (!form.building.trim()) e.building = 'Vui lòng nhập tòa'
     if (!form.apartment.trim()) e.apartment = 'Vui lòng nhập căn hộ'
     if (!form.isAnonymous && !form.contactName.trim()) e.contactName = 'Vui lòng nhập tên'
-    if (form.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail)) e.contactEmail = 'Email không hợp lệ'
-    if (form.contactPhone && !/^[0-9]{9,15}$/.test(form.contactPhone)) e.contactPhone = 'Số điện thoại không hợp lệ'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -111,7 +107,6 @@ export default function ComplaintForm() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Input label="Họ và tên" value={form.contactName} onChange={(e) => set('contactName', e.target.value)} error={errors.contactName} required />
             <Input label="Số điện thoại" value={form.contactPhone} onChange={(e) => set('contactPhone', e.target.value)} error={errors.contactPhone} />
-            <Input label="Email" type="email" value={form.contactEmail} onChange={(e) => set('contactEmail', e.target.value)} error={errors.contactEmail} />
           </div>
         )}
         <div className="flex gap-2">

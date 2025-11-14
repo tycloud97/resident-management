@@ -1,0 +1,69 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: rm-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: resident_db
+      MYSQL_USER: rm_user
+      MYSQL_PASSWORD: rm_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: rm-backend
+    environment:
+      # App
+      PORT: 3000
+      # DB
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: rm_user
+      DB_PASSWORD: rm_pass
+      DB_NAME: resident_db
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - backend-node-modules:/app/node_modules
+      - uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: rm-frontend
+    environment:
+      VITE_APP_NAME: Resident Management
+      VITE_API_BASE_URL: http://localhost:3000
+      VITE_USE_MOCKS: "false"
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+
+volumes:
+  mysql-data:
+  frontend-node-modules:
+  backend-node-modules:
+  uploads:
+

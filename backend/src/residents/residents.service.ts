@@ -1,41 +1,84 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { CreateResidentDto } from './dto/create-resident.dto'
+import { pool, rowToResident } from '../db/mysql'
+import { randomUUID } from 'crypto'
 
 @Injectable()
 export class ResidentsService {
-  private residents: any[] = [
-    { id: 'r1', fullName: 'John Doe', email: 'john@example.com', phone: '0900000000', building: 'A', apartment: '101', createdAt: new Date().toISOString(), images: [], members: [] },
-    { id: 'r2', fullName: 'Jane Smith', email: 'jane@example.com', phone: '0900000001', building: 'B', apartment: '202', createdAt: new Date().toISOString(), images: [], members: [] },
-  ]
-
-  findAll(q?: string, building?: string, apartment?: string) {
-    let data = [...this.residents]
+  async findAll(q?: string, building?: string, apartment?: string) {
+    const where: string[] = []
+    const params: any[] = []
     if (q) {
-      const s = q.toLowerCase()
-      data = data.filter((r) => [r.fullName, r.email, r.phone, r.building, r.apartment].some((v) => String(v || '').toLowerCase().includes(s)))
+      where.push('(full_name LIKE ? OR email LIKE ? OR phone LIKE ? OR building LIKE ? OR apartment LIKE ?)')
+      const like = `%${q}%`
+      params.push(like, like, like, like, like)
     }
-    if (building) data = data.filter((r) => r.building === building)
-    if (apartment) data = data.filter((r) => r.apartment === apartment)
+    if (building) {
+      where.push('building = ?')
+      params.push(building)
+    }
+    if (apartment) {
+      where.push('apartment = ?')
+      params.push(apartment)
+    }
+    const sql = `SELECT * FROM residents ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY created_at DESC`
+    const [rows] = await pool.query(sql, params)
+    const data = (rows as any[]).map(rowToResident)
     return { data }
   }
 
-  create(dto: CreateResidentDto, files: { avatar?: Express.Multer.File; photos?: Express.Multer.File[] }) {
-    if (this.residents.some((r) => r.building === dto.building && r.apartment === dto.apartment)) {
-      throw new Error('Resident exists')
+  async create(dto: CreateResidentDto, files: { avatar?: Express.Multer.File; photos?: Express.Multer.File[] }) {
+    const [dup] = await pool.query('SELECT id FROM residents WHERE building = ? AND apartment = ? LIMIT 1', [
+      dto.building,
+      dto.apartment,
+    ])
+    if ((dup as any[]).length) throw new Error('Resident exists')
+
+    const id = randomUUID()
+    const createdAt = new Date()
+    const avatarUrl = files.avatar ? `/uploads/${files.avatar.filename}` : null
+    const images = files.photos?.length
+      ? files.photos.map((f) => ({ id: f.filename, url: `/uploads/${f.filename}`, filename: f.originalname, mimeType: f.mimetype, size: f.size }))
+      : []
+
+    await pool.execute(
+      `INSERT INTO residents (id, full_name, email, phone, building, apartment, note, created_at, avatar_url, images, members)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        dto.fullName,
+        dto.email || null,
+        dto.phone || null,
+        dto.building,
+        dto.apartment,
+        dto.note || null,
+        createdAt,
+        avatarUrl,
+        images && images.length ? JSON.stringify(images) : null,
+        dto.members && dto.members.length ? JSON.stringify(dto.members) : null,
+      ],
+    )
+
+    return {
+      id,
+      fullName: dto.fullName,
+      email: dto.email,
+      phone: dto.phone,
+      building: dto.building,
+      apartment: dto.apartment,
+      note: dto.note,
+      createdAt: createdAt.toISOString(),
+      avatarUrl: avatarUrl || undefined,
+      images,
+      members: dto.members || [],
     }
-    const id = 'r' + (this.residents.length + 1)
-    const createdAt = new Date().toISOString()
-    const resident: any = { id, createdAt, images: [], ...dto }
-    if (files.avatar) resident.avatarUrl = `/uploads/${files.avatar.filename}`
-    if (files.photos?.length) resident.images = files.photos.map((f) => ({ id: f.filename, url: `/uploads/${f.filename}`, filename: f.originalname, mimeType: f.mimetype, size: f.size }))
-    this.residents.push(resident)
-    return resident
   }
 
-  findOne(id: string) {
-    const r = this.residents.find((x) => x.id === id)
+  async findOne(id: string) {
+    const [rows] = await pool.query('SELECT * FROM residents WHERE id = ? LIMIT 1', [id])
+    const r = (rows as any[])[0]
     if (!r) throw new NotFoundException()
-    return r
+    return rowToResident(r)
   }
 }
 

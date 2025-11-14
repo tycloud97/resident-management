@@ -3,89 +3,197 @@ import { CreateComplaintDto } from './dto/create-complaint.dto'
 import { UpdateStatusDto } from './dto/update-status.dto'
 import { AssignDto, AssignStageDto } from './dto/assign.dto'
 import { UpdateSeverityDto } from './dto/severity.dto'
+import { pool, rowToComplaint } from '../db/mysql'
+import { randomUUID } from 'crypto'
 
 @Injectable()
 export class ComplaintsService {
-  private complaints: any[] = [
-    { id: 'c1', title: 'Leaking pipe', description: 'Bathroom pipe leaking', residentId: 'r1', building: 'A', apartment: '101', type: 'MAINTENANCE', status: 'IN_PROGRESS', assignedTo: '2', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), attachments: [], severity: 'MEDIUM', stageAssignees: { NEW: '2', IN_PROGRESS: '2' } },
-  ]
-  private logs: any[] = [
-    { id: 'l1', complaintId: 'c1', action: 'STATUS_UPDATE', message: 'Set to IN_PROGRESS', performedBy: '2', createdAt: new Date().toISOString() },
-  ]
-
-  list(query: any) {
-    let data = [...this.complaints]
+  async list(query: any) {
+    const where: string[] = []
+    const params: any[] = []
     if (query.q) {
-      const s = String(query.q).toLowerCase()
-      data = data.filter((c) => [c.title, c.description, c.building, c.apartment].some((v) => String(v || '').toLowerCase().includes(s)))
+      where.push('(title LIKE ? OR description LIKE ? OR building LIKE ? OR apartment LIKE ?)')
+      const like = `%${query.q}%`
+      params.push(like, like, like, like)
     }
-    if (query.status) data = data.filter((c) => c.status === query.status)
-    if (query.type) data = data.filter((c) => c.type === query.type)
-    if (query.severity) data = data.filter((c) => c.severity === query.severity)
-    if (query.building) data = data.filter((c) => c.building === query.building)
-    if (query.apartment) data = data.filter((c) => c.apartment === query.apartment)
+    if (query.status) {
+      where.push('status = ?')
+      params.push(query.status)
+    }
+    if (query.type) {
+      where.push('type = ?')
+      params.push(query.type)
+    }
+    if (query.severity) {
+      where.push('severity = ?')
+      params.push(query.severity)
+    }
+    if (query.building) {
+      where.push('building = ?')
+      params.push(query.building)
+    }
+    if (query.apartment) {
+      where.push('apartment = ?')
+      params.push(query.apartment)
+    }
+    const sql = `SELECT * FROM complaints ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY created_at DESC`
+    const [rows] = await pool.query(sql, params)
+    const data = (rows as any[]).map(rowToComplaint)
     return { data }
   }
 
-  create(dto: CreateComplaintDto, files: Express.Multer.File[]) {
-    const id = 'c' + (this.complaints.length + 1)
-    const createdAt = new Date().toISOString()
-    const complaint: any = { id, status: 'NEW', createdAt, attachments: [], stageAssignees: {}, ...dto }
-    if (files?.length) complaint.attachments = files.map((f) => ({ id: f.filename, url: `/uploads/${f.filename}`, filename: f.originalname, mimeType: f.mimetype, size: f.size }))
-    this.complaints.push(complaint)
-    this.logs.push({ id: 'l' + (this.logs.length + 1), complaintId: id, action: 'CREATE', message: 'Complaint created', createdAt })
-    return complaint
+  async create(dto: CreateComplaintDto, files: Express.Multer.File[]) {
+    const id = randomUUID()
+    const createdAt = new Date()
+    const attachments = files?.length
+      ? files.map((f) => ({ id: f.filename, url: `/uploads/${f.filename}`, filename: f.originalname, mimeType: f.mimetype, size: f.size }))
+      : []
+    const stageAssignees = {}
+    await pool.execute(
+      `INSERT INTO complaints (id, title, description, resident_id, building, apartment, type, status, assigned_to, severity, created_at, attachments, stage_assignees)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        dto.title,
+        dto.description || null,
+        dto.residentId || null,
+        dto.building || null,
+        dto.apartment || null,
+        dto.type || null,
+        'NEW',
+        null,
+        null,
+        createdAt,
+        attachments.length ? JSON.stringify(attachments) : null,
+        JSON.stringify(stageAssignees),
+      ],
+    )
+    await pool.execute(
+      `INSERT INTO complaint_logs (id, complaint_id, action, message, created_at) VALUES (?, ?, ?, ?, ?)`,
+      [randomUUID(), id, 'CREATE', 'Complaint created', createdAt],
+    )
+    return { ...rowToComplaint({ id, title: dto.title, description: dto.description, resident_id: dto.residentId, building: dto.building, apartment: dto.apartment, type: dto.type, status: 'NEW', created_at: createdAt, attachments: JSON.stringify(attachments), stage_assignees: JSON.stringify(stageAssignees) }) }
   }
 
-  detail(id: string) {
-    const complaint = this.complaints.find((x) => x.id === id)
-    if (!complaint) throw new NotFoundException()
-    const logs = this.logs.filter((l) => l.complaintId === id)
+  async detail(id: string) {
+    const [rows] = await pool.query('SELECT * FROM complaints WHERE id = ? LIMIT 1', [id])
+    const row = (rows as any[])[0]
+    if (!row) throw new NotFoundException()
+    console.log(row)
+    const complaint = rowToComplaint(row)
+    const [logRows] = await pool.query('SELECT * FROM complaint_logs WHERE complaint_id = ? ORDER BY created_at ASC', [id])
+    const logs = (logRows as any[]).map((r) => ({
+      id: r.id,
+      complaintId: r.complaint_id,
+      action: r.action,
+      message: r.message || undefined,
+      performedBy: r.performed_by || undefined,
+      authorName: r.author_name || undefined,
+      isAnonymous: !!r.is_anonymous,
+      attachments: r.attachments ? JSON.parse(r.attachments) : [],
+      createdAt: new Date(r.created_at).toISOString(),
+    }))
     return { complaint, logs }
   }
 
-  updateStatus(id: string, dto: UpdateStatusDto) {
-    const idx = this.complaints.findIndex((x) => x.id === id)
-    if (idx === -1) throw new NotFoundException()
-    const now = new Date().toISOString()
-    const closedAt = dto.status === 'RESOLVED' || dto.status === 'REJECTED' ? now : this.complaints[idx].closedAt
-    this.complaints[idx] = { ...this.complaints[idx], status: dto.status, updatedAt: now, closedAt }
-    this.logs.push({ id: 'l' + (this.logs.length + 1), complaintId: id, action: 'STATUS_UPDATE', message: dto.message, createdAt: now })
-    return this.complaints[idx]
+  async updateStatus(id: string, dto: UpdateStatusDto) {
+    const now = new Date()
+    const [rows] = await pool.query('SELECT status FROM complaints WHERE id = ? LIMIT 1', [id])
+    if (!(rows as any[])[0]) throw new NotFoundException()
+    const closedAt = dto.status === 'RESOLVED' || dto.status === 'REJECTED' ? now : null
+    await pool.execute('UPDATE complaints SET status = ?, updated_at = ?, closed_at = IFNULL(?, closed_at) WHERE id = ?', [
+      dto.status,
+      now,
+      closedAt,
+      id,
+    ])
+    await pool.execute(
+      `INSERT INTO complaint_logs (id, complaint_id, action, message, created_at) VALUES (?, ?, ?, ?, ?)`,
+      [randomUUID(), id, 'STATUS_UPDATE', dto.message || '', now],
+    )
+    const [after] = await pool.query('SELECT * FROM complaints WHERE id = ? LIMIT 1', [id])
+    return rowToComplaint((after as any[])[0])
   }
 
-  assign(id: string, dto: AssignDto) {
-    const idx = this.complaints.findIndex((x) => x.id === id)
-    if (idx === -1) throw new NotFoundException()
-    this.complaints[idx] = { ...this.complaints[idx], assignedTo: dto.assignedTo }
-    this.logs.push({ id: 'l' + (this.logs.length + 1), complaintId: id, action: 'ASSIGN', message: `assign ${dto.assignedTo}`, createdAt: new Date().toISOString() })
-    return this.complaints[idx]
+  async assign(id: string, dto: AssignDto) {
+    const now = new Date()
+    const [rows] = await pool.query('SELECT id FROM complaints WHERE id = ? LIMIT 1', [id])
+    if (!(rows as any[])[0]) throw new NotFoundException()
+    await pool.execute('UPDATE complaints SET assigned_to = ?, updated_at = ? WHERE id = ?', [dto.assignedTo, now, id])
+    await pool.execute(
+      `INSERT INTO complaint_logs (id, complaint_id, action, message, created_at) VALUES (?, ?, ?, ?, ?)`,
+      [randomUUID(), id, 'ASSIGN', `assign ${dto.assignedTo}`, now],
+    )
+    const [after] = await pool.query('SELECT * FROM complaints WHERE id = ? LIMIT 1', [id])
+    return rowToComplaint((after as any[])[0])
   }
 
-  assignStage(id: string, dto: AssignStageDto) {
-    const idx = this.complaints.findIndex((x) => x.id === id)
-    if (idx === -1) throw new NotFoundException()
-    const stageAssignees = { ...(this.complaints[idx].stageAssignees || {}), [dto.stage]: dto.assignedTo }
-    this.complaints[idx] = { ...this.complaints[idx], stageAssignees }
-    this.logs.push({ id: 'l' + (this.logs.length + 1), complaintId: id, action: 'ASSIGN_STAGE', message: `assign ${dto.stage}`, createdAt: new Date().toISOString() })
-    return this.complaints[idx]
+  async assignStage(id: string, dto: AssignStageDto) {
+    const now = new Date()
+    const [rows] = await pool.query('SELECT stage_assignees FROM complaints WHERE id = ? LIMIT 1', [id])
+    const row = (rows as any[])[0]
+    if (!row) throw new NotFoundException()
+    const stageAssignees = row.stage_assignees ? JSON.parse(row.stage_assignees) : {}
+    stageAssignees[dto.stage] = dto.assignedTo
+    await pool.execute('UPDATE complaints SET stage_assignees = ?, updated_at = ? WHERE id = ?', [
+      JSON.stringify(stageAssignees),
+      now,
+      id,
+    ])
+    await pool.execute(
+      `INSERT INTO complaint_logs (id, complaint_id, action, message, created_at) VALUES (?, ?, ?, ?, ?)`,
+      [randomUUID(), id, 'ASSIGN_STAGE', `assign ${dto.stage}`, now],
+    )
+    const [after] = await pool.query('SELECT * FROM complaints WHERE id = ? LIMIT 1', [id])
+    return rowToComplaint((after as any[])[0])
   }
 
-  updateSeverity(id: string, dto: UpdateSeverityDto) {
-    const idx = this.complaints.findIndex((x) => x.id === id)
-    if (idx === -1) throw new NotFoundException()
-    this.complaints[idx] = { ...this.complaints[idx], severity: dto.severity }
-    this.logs.push({ id: 'l' + (this.logs.length + 1), complaintId: id, action: 'SEVERITY_UPDATE', message: `severity ${dto.severity}`, createdAt: new Date().toISOString() })
-    return this.complaints[idx]
+  async updateSeverity(id: string, dto: UpdateSeverityDto) {
+    const now = new Date()
+    const [rows] = await pool.query('SELECT id FROM complaints WHERE id = ? LIMIT 1', [id])
+    if (!(rows as any[])[0]) throw new NotFoundException()
+    await pool.execute('UPDATE complaints SET severity = ?, updated_at = ? WHERE id = ?', [dto.severity, now, id])
+    await pool.execute(
+      `INSERT INTO complaint_logs (id, complaint_id, action, message, created_at) VALUES (?, ?, ?, ?, ?)`,
+      [randomUUID(), id, 'SEVERITY_UPDATE', `severity ${dto.severity}`, now],
+    )
+    const [after] = await pool.query('SELECT * FROM complaints WHERE id = ? LIMIT 1', [id])
+    return rowToComplaint((after as any[])[0])
   }
 
-  addComment(id: string, body: any, files: Express.Multer.File[]) {
-    const complaint = this.complaints.find((x) => x.id === id)
-    if (!complaint) throw new NotFoundException()
-    const log: any = { id: 'l' + (this.logs.length + 1), complaintId: id, action: 'COMMENT', message: body.message, createdAt: new Date().toISOString(), authorName: body.authorName, isAnonymous: body.isAnonymous === 'true' || body.isAnonymous === true }
-    if (files?.length) log.attachments = files.map((f) => ({ id: f.filename, url: `/uploads/${f.filename}`, filename: f.originalname, mimeType: f.mimetype, size: f.size }))
-    this.logs.push(log)
-    return log
+  async addComment(id: string, body: any, files: Express.Multer.File[]) {
+    const [rows] = await pool.query('SELECT id FROM complaints WHERE id = ? LIMIT 1', [id])
+    if (!(rows as any[])[0]) throw new NotFoundException()
+    const now = new Date()
+    const attachments = files?.length
+      ? files.map((f) => ({ id: f.filename, url: `/uploads/${f.filename}`, filename: f.originalname, mimeType: f.mimetype, size: f.size }))
+      : []
+    const logId = randomUUID()
+    await pool.execute(
+      `INSERT INTO complaint_logs (id, complaint_id, action, message, performed_by, author_name, is_anonymous, attachments, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        logId,
+        id,
+        'COMMENT',
+        body.message || null,
+        body.performedBy || null,
+        body.authorName || null,
+        body.isAnonymous === 'true' || body.isAnonymous === true ? 1 : 0,
+        attachments.length ? JSON.stringify(attachments) : null,
+        now,
+      ],
+    )
+    return {
+      id: logId,
+      complaintId: id,
+      action: 'COMMENT',
+      message: body.message,
+      performedBy: body.performedBy,
+      authorName: body.authorName,
+      isAnonymous: body.isAnonymous === 'true' || body.isAnonymous === true,
+      attachments,
+      createdAt: now.toISOString(),
+    }
   }
 }
-

@@ -352,6 +352,36 @@ Common scripts:
 
 ------------------------------------------------------------------------
 
+# 5.1 Local Docker Setup
+
+This repo includes a ready-to-use Docker Compose stack for local testing with real API and MySQL.
+
+Services:
+- `mysql` (MySQL 8.0) with database `resident_db`
+- `backend` (NestJS, dev mode on port 3000)
+- `frontend` (Vite dev server on port 5173)
+
+Quick start:
+
+    docker compose up --build
+
+Then open:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:3000
+- API Docs (OpenAPI): http://localhost:3000/docs
+
+Notes:
+- Frontend is configured to call the backend via `VITE_API_BASE_URL=http://localhost:3000` inside the Docker network and will run with `VITE_USE_MOCKS=false`.
+- Backend persists residents and complaints to MySQL. Uploaded files are stored in a named volume `uploads` and served via `/uploads`.
+- MySQL port is published as `3307` on the host to avoid conflicts with a local MySQL (`localhost:3307`). Credentials are defined in `docker-compose.yml`.
+
+Useful commands:
+- Rebuild after changes: `docker compose up --build`
+- Tear down (keep DB data): `docker compose down`
+- Tear down and remove DB volume: `docker compose down -v`
+
+------------------------------------------------------------------------
+
 # 6. Conclusion
 
 This MVP demonstrates:
