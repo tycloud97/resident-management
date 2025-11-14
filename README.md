@@ -1,5 +1,7 @@
 # Resident Management System (MVP)
 
+![alt text](image.png)
+
 ## 📌 Overview
 
 Resident Management System (RMS) is a fullstack MVP application for apartment management boards.
@@ -22,13 +24,8 @@ and maintainability.
 
 ## Backend
 
-    npm install
-    npm run dev
-
-Create `.env`:
-
-    DATABASE_URL=postgres://...
-    JWT_SECRET=your-secret
+npm install
+npm run dev
 
 ## Frontend
 
@@ -62,6 +59,14 @@ Environment variables (frontend/.env.local):
 - `VITE_API_BASE_URL`: Backend base URL (e.g., http://localhost:3000)
 - `VITE_USE_MOCKS`: `true` to run fully with mock data, no backend required
 
+Example content of `frontend/.env`:
+
+```
+VITE_APP_NAME=Resident Management
+VITE_API_BASE_URL=http://localhost:3000
+VITE_USE_MOCKS=false
+```
+
 Mock accounts (when VITE_USE_MOCKS=true):
 
 - Admin: `admin@example.com` / `password`
@@ -82,15 +87,6 @@ Frontend structure:
         routes/           # ProtectedRoute, RoleGuard
         main.tsx, App.tsx, index.css
 
-Key design notes:
-
-- Clean code and modular structure (feature‑based folders, shared UI)
-- RESTful API design (separate modules per resource, query/mutation via React Query)
-- Input validation and graceful error handling on forms and API layer
-- Security: JWT bearer injection, minimal token surface (demo uses localStorage; prefer httpOnly cookies in production)
-- Performance: React Query caching, minimal re‑renders, Vite for fast HMR
-- Accessibility: semantic HTML, labels, focus styles, skip‑to‑content, color contrast friendly Tailwind defaults
-- Responsive UI via Tailwind utility classes (flex/grid, responsive modifiers)
 
 Common scripts:
 
