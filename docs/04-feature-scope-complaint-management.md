@@ -30,7 +30,6 @@ The backend API for this module is defined in `backend/openapi.yaml` under the *
 ### Core entities
 - `Complaint` – main record for each complaint (title, description, building, apartment, type, severity, status, isAnonymous, contact info, timestamps, assigned handlers).
 - `ComplaintLog` – timeline entries for a complaint (action type such as CREATE, STATUS_UPDATE, ASSIGN, ASSIGN_STAGE, COMMENT, message, attachments).
-- `Attachment` – uploaded files (images) linked to complaints or logs.
 
 ### Main endpoints used by the MVP
 - `GET /complaints` – list complaints with query filters (q, status, type, severity, building, apartment, page, pageSize).
