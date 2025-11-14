@@ -1,9 +1,9 @@
 # 4. Feature Scope – Complaint Management
 
-## 4.1 Why this module is chosen
+## 4.1 Why this module was chosen
 
 - Complaint handling is the most critical interaction between residents and the management board.
-- It covers a full end-to-end workflow: from UI → API → database → reporting.
+- It demonstrates a complete end-to-end workflow: from UI → API → database → reporting.
 
 ---
 
@@ -42,4 +42,3 @@ The backend covers a complete complaint lifecycle:
 - Use React Query to keep list and detail views in sync.
 - Use `StatusBadge` and `StatusTimeline`/`ComplaintTimeline` components for clear visual status.
 - Separate UI components from API-calling logic to keep the codebase maintainable.
-

@@ -2,24 +2,25 @@
 
 ## 📌 Overview
 
-Resident Management System (RMS) là ứng dụng fullstack MVP hỗ trợ ban quản lý chung cư
-quản lý thông tin cư dân và xử lý phản ánh tập trung, thay thế quy trình rời rạc hiện tại
-(Zalo + Excel). Hệ thống được thiết kế có kiến trúc rõ ràng, dễ mở rộng và dễ bảo trì.
+Resident Management System (RMS) is a fullstack MVP application for apartment management boards.
+It centralizes resident information and complaint handling, replacing fragmented workflows
+based on Zalo chats and Excel files. The system emphasizes clear architecture, scalability,
+and maintainability.
 
 ---
 
 ## 📚 Documentation
 
-- **1. Painpoints & Problem Solving / Các vấn đề & cách giải quyết**  
+- **1. Pain Points & Solutions**  
   `docs/01-painpoints-and-solutions.md`
 
-- **2. Module Analysis & Product Development Plan / Phân tích module & kế hoạch phát triển**  
+- **2. Module Analysis & Product Development Plan**  
   `docs/02-module-analysis-and-plan.md`
 
-- **3. Technical Requirements / Yêu cầu kỹ thuật**  
+- **3. Technical Requirements**  
   `docs/03-technical-requirements.md`
 
-- **4. Feature Scope – Complaint Management / Phạm vi chức năng – Module phản ánh**  
+- **4. Feature Scope – Complaint Management**  
   `docs/04-feature-scope-complaint-management.md`
 
 ---
@@ -38,18 +39,22 @@ Create `.env`:
 
 ## Frontend
 
-Implemented with React + TypeScript + Vite + Tailwind and React Query. The frontend supports RESTful API integration and a built‑in mock mode to run without backend.
+The frontend is built with React, TypeScript, Vite, TailwindCSS and React Query.
+It supports RESTful API integration and also includes a mock mode that can run without a backend.
 
 Public pages (no login required):
 
-- `/dashboard` – Bảng điều khiển (thống kê tổng quan)
-- `/complaints` – Danh sách phản ánh
-- `/complaints/new` – Gửi phản ánh (hỗ trợ ẩn danh)
-- `/complaints/:id` – Chi tiết phản ánh + bình luận
+- `/dashboard` – Overall dashboard and statistics
+- `/complaints` – Public complaints list
+- `/complaints/new` – Submit a complaint (supports anonymous complaints)
+- `/complaints/:id` – Complaint detail and comments
 
 Management pages (login required):
 
-- `/manage/dashboard`, `/manage/residents`, `/manage/complaints`, `/manage/residents/:id`
+- `/manage/dashboard`
+- `/manage/residents`
+- `/manage/complaints`
+- `/manage/residents/:id`
 
 Quick start:
 

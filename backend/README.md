@@ -1,61 +1,65 @@
 # Resident Management API (Swagger)
 
-Các file chính:
+## Key files
 
-- `backend/openapi.yaml` — Định nghĩa OpenAPI 3.0 của API
-- `backend/swagger/index.html` — Trang Swagger UI (sử dụng CDN) để xem trước
+- `backend/openapi.yaml` — OpenAPI 3.0 definition of the API.
+- `backend/swagger/index.html` — Swagger UI page (uses CDN) for previewing the API.
 
-## Xem trước nhanh
+## Quick preview options
 
-Cách 1 — Mở trực tiếp Swagger UI:
+**Option 1 – Open Swagger UI locally**
 
-- Mở file `backend/swagger/index.html` trong trình duyệt (cho phép tải CDN).
-- Swagger UI sẽ tự nạp `../openapi.yaml`.
+- Open `backend/swagger/index.html` directly in your browser (allow CDN access).
+- Swagger UI will automatically load `../openapi.yaml`.
 
-Cách 2 — Dùng Swagger Editor online:
+**Option 2 – Use Swagger Editor online**
 
-- Truy cập https://editor.swagger.io và dán nội dung `backend/openapi.yaml`.
+- Go to https://editor.swagger.io.
+- Paste the contents of `backend/openapi.yaml` into the editor.
 
-Cách 3 — Chạy server tĩnh (tùy chọn):
+**Option 3 – Run a simple static server (optional)**
 
-- `npx http-server backend/swagger` (hoặc bất kỳ static server nào), sau đó mở `http://localhost:8080`.
+- Run `npx http-server backend/swagger` (or any static file server).
+- Open `http://localhost:8080` in your browser.
 
-## Tổng quan API
+## API overview
 
-- Xác thực: Bearer JWT cho các endpoint quản trị (staff/admin)
-- Modules:
+- Authentication: Bearer JWT for staff/admin endpoints.
+- Main modules:
   - Auth: `/auth/login`
-  - Residents: `/residents`, `/residents/{id}` (multipart khi tạo)
-  - Complaints (công khai + quản trị):
-    - Danh sách/ tạo: `/complaints`
-    - Chi tiết + logs: `/complaints/{id}`
-    - Cập nhật trạng thái: `/complaints/{id}/status`
-    - Phân công chính: `/complaints/{id}/assign`
-    - Phân công theo giai đoạn: `/complaints/{id}/assign-stage`
-    - Đổi mức độ: `/complaints/{id}/severity`
-    - Bình luận + ảnh: `/complaints/{id}/comments` (JSON hoặc multipart)
+  - Residents: `/residents`, `/residents/{id}` (multipart when creating)
+  - Complaints (public + management):
+    - List/create: `/complaints`
+    - Detail + logs: `/complaints/{id}`
+    - Update status: `/complaints/{id}/status`
+    - Main assignment: `/complaints/{id}/assign`
+    - Stage assignment: `/complaints/{id}/assign-stage`
+    - Change severity: `/complaints/{id}/severity`
+    - Comments + images: `/complaints/{id}/comments` (JSON or multipart)
   - Dashboard: `/dashboard/stats`
   - Users: `/users?role=staff`
 
-Các schema bám sát UI frontend: `Complaint`, `ComplaintLog`, `Resident`, `User`, `Attachment`, `Severity`, `ComplaintStatus`, `HouseholdMember`.
+The schemas closely follow the frontend UI: `Complaint`, `ComplaintLog`, `Resident`, `User`, `Attachment`, `Severity`, `ComplaintStatus`, `HouseholdMember`.
 
-## Gợi ý triển khai Backend
+## Backend implementation notes
 
-- NestJS hoặc Express + Zod/Joi để validate.
-- Upload file: dùng multipart (multer/fastify-multipart); ảnh trả về `url` (CDN/presigned S3/local storage).
-- Bảo mật: hash mật khẩu (bcrypt), JWT, RBAC theo `role`.
-- SLA/mức độ nghiêm trọng: cập nhật `severity`, log `SEVERITY_UPDATE`.
-- Dòng thời gian (logs): ghi `CREATE`, `STATUS_UPDATE`, `ASSIGN`, `ASSIGN_STAGE`, `COMMENT`.
-- Chạy dev server NestJS:
+- Framework: NestJS or Express with Zod/Joi for validation.
+- File upload: use multipart (multer/fastify-multipart); return image URLs (CDN/presigned S3/local storage).
+- Security: hash passwords (bcrypt), use JWT and RBAC by `role`.
+- Severity and SLA: update `severity` and log `SEVERITY_UPDATE` events.
+- Timeline (logs): record `CREATE`, `STATUS_UPDATE`, `ASSIGN`, `ASSIGN_STAGE`, `COMMENT` actions.
 
-  - cd backend
-  - npm install
-  - npm run dev
+### Running the NestJS dev server
 
-- Swagger UI: http://localhost:3000/docs
+- `cd backend`
+- `npm install`
+- `npm run dev`
 
-- Quy ước token dev cho guard:
-  - Authorization: `Bearer dev-admin-token` → role admin
-  - Authorization: `Bearer dev-staff-token` → role staff
-  - Authorization: `Bearer anything-else` → role resident
+Swagger UI will be available at: `http://localhost:3000/docs`.
+
+### Dev token conventions for guards
+
+- `Authorization: Bearer dev-admin-token` → role: admin  
+- `Authorization: Bearer dev-staff-token` → role: staff  
+- `Authorization: Bearer anything-else` → role: resident
 

@@ -1,77 +1,76 @@
-# 2. Module Analysis & Product Development Plan  
-# Phân tích chức năng và kế hoạch phát triển
+# 2. Module Analysis & Product Development Plan
 
-## 2.1 Vai trò người dùng (User Roles)
+## 2.1 User roles
 
-- **Resident (Cư dân)**  
-  - Gửi phản ánh, xem danh sách phản ánh của mình, xem chi tiết.
+- **Resident**  
+  - Submit complaints, view their own complaints, see details.
 
-- **Staff (Nhân viên ban quản lý)**  
-  - Quản lý cư dân, tiếp nhận và xử lý phản ánh.
+- **Staff**  
+  - Manage residents and handle complaints.
 
 - **Admin**  
-  - Quản lý tài khoản người dùng, phân quyền, cấu hình hệ thống.
+  - Manage user accounts, roles, and system configuration.
 
 ---
 
-## 2.2 Các module chính
+## 2.2 Core modules
 
 1. **Authentication & Authorization**  
-   - Đăng nhập, xác thực JWT, phân quyền.
+   - Login, JWT-based authentication, role-based access.
 
 2. **Resident Management**  
-   - CRUD cư dân, tìm kiếm, lọc theo tòa/ tầng/ căn hộ.
+   - Resident CRUD, search and filter by building/floor/apartment.
 
 3. **Complaint Management** (core)  
-   - Gửi, theo dõi, xử lý phản ánh; timeline log.
+   - Submit, track, and process complaints; show a timeline of actions.
 
-4. **Announcement** (tuỳ chọn)  
-   - Đăng thông báo chung cho cư dân.
+4. **Announcement** (optional)  
+   - Publish announcements to residents.
 
 5. **Dashboard & Reporting**  
-   - Thống kê số lượng cư dân, phản ánh, thời gian xử lý.
+   - Show statistics about residents, complaints, and handling time.
 
-6. **System Settings** (tương lai)  
-   - Cấu hình chung, tham số hệ thống.
-
----
-
-## 2.3 Thực thể chính (Entities)
-
-- `User` – tài khoản đăng nhập, vai trò.
-- `Resident` – thông tin cư dân, căn hộ.
-- `Complaint` – phản ánh của cư dân.
-- `ComplaintLog` – lịch sử thao tác trên phản ánh.
-- `Announcement` (optional) – thông báo.
-- `Attachment` (optional) – file đính kèm (ảnh, tài liệu).
+6. **System Settings** (future)  
+   - Global configuration and system parameters.
 
 ---
 
-## 2.4 Kế hoạch phát triển (Roadmap)
+## 2.3 Key entities
 
-### Phase 0 – Thiết lập dự án
-- Khởi tạo repo, cấu hình cấu trúc backend/frontend.
-- Thiết lập TypeScript, ESLint, Prettier, Docker (dev).
+- `User` – login account and role.
+- `Resident` – resident profile and apartment information.
+- `Complaint` – complaint submitted by a resident.
+- `ComplaintLog` – history of actions on a complaint.
+- `Announcement` (optional) – announcements to residents.
+- `Attachment` (optional) – files such as images or documents.
+
+---
+
+## 2.4 Roadmap
+
+### Phase 0 – Project setup
+- Initialize repository, define backend/frontend structure.
+- Configure TypeScript, ESLint, Prettier, Docker for development.
 
 ### Phase 1 – Authentication
-- API login + phát hành JWT.
-- Màn hình login trên frontend, bảo vệ route.
-- Layout, điều hướng, khung giao diện cơ bản.
+- Implement login API and issue JWT.
+- Build login page on the frontend and protect routes.
+- Set up basic layout and navigation.
 
 ### Phase 2 – Resident Management
-- API CRUD cư dân.
-- Màn hình danh sách + form thêm/sửa, lọc theo tiêu chí.
+- Implement resident CRUD APIs.
+- Build list and form screens with useful filters.
 
 ### Phase 3 – Complaint Management (core)
-- Luồng gửi phản ánh cho cư dân.
-- Luồng xử lý cho staff/admin (nhận, cập nhật trạng thái, ghi log).
-- Tự động ghi `ComplaintLog` khi trạng thái thay đổi.
+- Implement the resident complaint submission flow.
+- Implement the staff/admin handling flow (receive, update status, log actions).
+- Automatically write to `ComplaintLog` whenever status changes.
 
 ### Phase 4 – Dashboard
-- API thống kê.
-- Màn hình dashboard hiển thị số liệu và biểu đồ đơn giản.
+- Provide statistics APIs.
+- Build a simple dashboard view with key metrics and charts.
 
-### Phase 5 – Hoàn thiện
-- Rà soát lại UI/UX, accessibility.
-- Cập nhật README, dọn dẹp code.
+### Phase 5 – Finalization
+- Review and refine UI/UX and accessibility.
+- Update documentation and clean up the codebase.
 

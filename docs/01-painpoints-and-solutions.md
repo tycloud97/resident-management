@@ -1,54 +1,53 @@
-# 1. Painpoints & Problem Solving  
-# Các vấn đề và cách giải quyết
+# 1. Pain Points & Solutions
 
-## 1.1 Dữ liệu phân tán (Zalo + Excel)
+## 1.1 Scattered data (Zalo + Excel)
 
-**Vấn đề**
-- Thông tin cư dân nằm rải rác trong nhiều file Excel và cuộc trò chuyện Zalo.
-- Khó tìm kiếm, lọc, đối soát, dễ sai lệch dữ liệu.
+**Pain point**
+- Resident information is spread across many Excel files and Zalo chats.
+- It is hard to search, filter, reconcile, and keep data consistent.
 
-**Giải pháp**
-- Xây dựng cơ sở dữ liệu cư dân tập trung.
-- Giao diện quản lý cư dân (danh sách, lọc, thêm, sửa).
-- Ràng buộc dữ liệu (unique: tòa nhà + căn hộ), kiểm tra đầu vào ở API.
-
----
-
-## 1.2 Xử lý phản ánh chậm, không có quy trình
-
-**Vấn đề**
-- Không có hệ thống ticket cho phản ánh.
-- Không theo dõi trạng thái xử lý, không có log hành động.
-
-**Giải pháp**
-- Module quản lý phản ánh (Complaint Management).
-- Quy trình rõ ràng: `NEW → IN_PROGRESS → RESOLVED/REJECTED`.
-- Lưu lịch sử xử lý trong bảng `ComplaintLog`.
-- Dashboard hiển thị thống kê số lượng, trạng thái, thời gian xử lý.
+**Solution**
+- Build a centralized resident database.
+- Provide a resident management UI (list, filter, create, edit).
+- Enforce data constraints (e.g. unique building + apartment) and validate inputs at the API layer.
 
 ---
 
-## 1.3 Thiếu bảo mật và phân quyền
+## 1.2 Slow, untracked complaint handling
 
-**Vấn đề**
-- Thông tin nhạy cảm bị chia sẻ tràn lan trong group Zalo.
-- Không có cơ chế xác thực và phân quyền người dùng.
+**Pain point**
+- No proper ticket system for complaints.
+- No way to track complaint status or see who did what.
 
-**Giải pháp**
-- Áp dụng đăng nhập với JWT.
-- Mô hình RBAC với 3 vai trò: **Resident**, **Staff**, **Admin**.
-- Hạn chế quyền truy cập API và màn hình UI theo vai trò.
+**Solution**
+- Implement a Complaint Management module.
+- Define a clear workflow: `NEW → IN_PROGRESS → RESOLVED/REJECTED`.
+- Store every important action in a `ComplaintLog` table.
+- Provide a dashboard that shows volume, status breakdown, and handling time.
 
 ---
 
-## 1.4 Trải nghiệm người dùng kém
+## 1.3 Weak security and access control
 
-**Vấn đề**
-- Giao diện không responsive, khó dùng trên điện thoại.
-- Không tuân thủ các tiêu chuẩn cơ bản về accessibility (WCAG).
+**Pain point**
+- Sensitive information is shared widely in Zalo groups.
+- There is no authentication or role-based access control.
 
-**Giải pháp**
-- Thiết kế responsive dùng grid/flex.
-- Sử dụng HTML semantic, label đầy đủ, hỗ trợ điều hướng bằng bàn phím.
-- Đảm bảo tương phản màu sắc, trạng thái focus rõ ràng.
+**Solution**
+- Use login with JWT-based authentication.
+- Apply RBAC with three roles: **Resident**, **Staff**, **Admin**.
+- Restrict both API endpoints and UI screens based on role.
+
+---
+
+## 1.4 Poor user experience
+
+**Pain point**
+- The UI is not responsive and is hard to use on mobile.
+- Basic accessibility (WCAG) principles are not followed.
+
+**Solution**
+- Design a responsive layout using grid/flex.
+- Use semantic HTML and proper labels; support keyboard navigation.
+- Ensure good color contrast and clear focus states.
 
