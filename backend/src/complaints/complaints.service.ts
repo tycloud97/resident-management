@@ -44,6 +44,7 @@ export class ComplaintsService {
 
   async create(dto: CreateComplaintDto, files: any[]) {
     const id = randomUUID()
+    console.log(files)
     const createdAt = new Date()
     const attachments = files?.length
       ? files.map((f) => ({ id: f.filename, url: `/uploads/${f.filename}`, filename: f.originalname, mimeType: f.mimetype, size: f.size }))
