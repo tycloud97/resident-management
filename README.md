@@ -1,6 +1,6 @@
 # Resident Management System (MVP)
 
-![alt text](./docs/imgs/image.png)
+![alt text](./docs/imgs/image-8.png)
 
 ## 📌 Overview
 
