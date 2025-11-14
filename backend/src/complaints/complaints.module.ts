@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common'
+import { MulterModule } from '@nestjs/platform-express'
+import { join } from 'path'
 import { ComplaintsController } from './complaints.controller'
 import { ComplaintsService } from './complaints.service'
 
@@ -7,4 +9,3 @@ import { ComplaintsService } from './complaints.service'
   providers: [ComplaintsService],
 })
 export class ComplaintsModule {}
-

@@ -6,7 +6,7 @@ export class CreateComplaintDto {
   @IsString() title: string
   @IsString() description: string
   @IsString() building: string
-  @IsOptional() @IsString() residentId: string
+  @IsOptional() @IsString() residentId?: string
   @IsString() apartment: string
   @IsString() @IsEnum(['NOISE','MAINTENANCE','SECURITY','OTHER'] as any) type: any
   @IsOptional()
@@ -17,4 +17,5 @@ export class CreateComplaintDto {
   @IsOptional() @IsString() contactPhone?: string
   @IsOptional() @IsEmail() contactEmail?: string
   @IsOptional() @IsString() severity?: Severity
+  @IsOptional() @IsString() assignedTo?: string
 }

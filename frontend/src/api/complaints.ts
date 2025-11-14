@@ -18,6 +18,8 @@ export async function createComplaint(payload: CreateComplaintInput) {
     fd.append('building', payload.building)
     fd.append('apartment', payload.apartment)
     fd.append('type', payload.type)
+    if (payload.severity) fd.append('severity', payload.severity)
+    if (payload.assignedTo) fd.append('assignedTo', payload.assignedTo)
     if (payload.isAnonymous != null) fd.append('isAnonymous', String(payload.isAnonymous))
     if (payload.contactName) fd.append('contactName', payload.contactName)
     if (payload.contactPhone) fd.append('contactPhone', payload.contactPhone)

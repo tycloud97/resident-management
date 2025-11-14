@@ -44,11 +44,12 @@ export class ComplaintsService {
 
   async create(dto: CreateComplaintDto, files: any[]) {
     const id = randomUUID()
-    console.log(files)
     const createdAt = new Date()
-    const attachments = files?.length
+    const severity = dto.severity || 'MEDIUM'
+    // TODO 2025.11.14: Need to implement S3 upload
+    const attachments = [files?.length
       ? files.map((f) => ({ id: f.filename, url: `/uploads/${f.filename}`, filename: f.originalname, mimeType: f.mimetype, size: f.size }))
-      : []
+      : []]
     const stageAssignees = {}
     await pool.execute(
       `INSERT INTO complaints (id, title, description, resident_id, building, apartment, type, status, assigned_to, severity, created_at, attachments, stage_assignees)
@@ -62,8 +63,8 @@ export class ComplaintsService {
         dto.apartment || null,
         dto.type || null,
         'NEW',
-        null,
-        null,
+        dto.assignedTo || null,
+        severity,
         createdAt,
         attachments.length ? JSON.stringify(attachments) : null,
         JSON.stringify(stageAssignees),
@@ -73,7 +74,23 @@ export class ComplaintsService {
       `INSERT INTO complaint_logs (id, complaint_id, action, message, created_at) VALUES (?, ?, ?, ?, ?)`,
       [randomUUID(), id, 'CREATE', 'Complaint created', createdAt],
     )
-    return { ...rowToComplaint({ id, title: dto.title, description: dto.description, resident_id: dto.residentId, building: dto.building, apartment: dto.apartment, type: dto.type, status: 'NEW', created_at: createdAt, attachments: JSON.stringify(attachments), stage_assignees: JSON.stringify(stageAssignees) }) }
+    return {
+      ...rowToComplaint({
+        id,
+        title: dto.title,
+        description: dto.description || null,
+        resident_id: dto.residentId || null,
+        building: dto.building || null,
+        apartment: dto.apartment || null,
+        type: dto.type || null,
+        status: 'NEW',
+        assigned_to: dto.assignedTo || null,
+        severity,
+        created_at: createdAt,
+        attachments: JSON.stringify(attachments),
+        stage_assignees: JSON.stringify(stageAssignees),
+      }),
+    }
   }
 
   async detail(id: string) {
@@ -162,7 +179,7 @@ export class ComplaintsService {
     return rowToComplaint((after as any[])[0])
   }
 
-  async addComment(id: string, body: any, files: Express.Multer.File[]) {
+  async addComment(id: string, body: any, files: any[]) {
     const [rows] = await pool.query('SELECT id FROM complaints WHERE id = ? LIMIT 1', [id])
     if (!(rows as any[])[0]) throw new NotFoundException()
     const now = new Date()
@@ -170,6 +187,7 @@ export class ComplaintsService {
       ? files.map((f) => ({ id: f.filename, url: `/uploads/${f.filename}`, filename: f.originalname, mimeType: f.mimetype, size: f.size }))
       : []
     const logId = randomUUID()
+    console.log(body)
     await pool.execute(
       `INSERT INTO complaint_logs (id, complaint_id, action, message, performed_by, author_name, is_anonymous, attachments, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -177,9 +195,9 @@ export class ComplaintsService {
         logId,
         id,
         'COMMENT',
-        body.message,
-        body.performedBy,
-        body.authorName,
+        body.message || null,
+        body.performedBy || null,
+        body.authorName || null,
         body.isAnonymous === 'true' || body.isAnonymous === true ? 1 : 0,
         attachments.length ? JSON.stringify(attachments) : null,
         now,

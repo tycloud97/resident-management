@@ -313,6 +313,7 @@ paths:
                 building: { type: string }
                 apartment: { type: string }
                 type: { type: string, enum: [NOISE, MAINTENANCE, SECURITY, OTHER] }
+                assignedTo: { type: string }
                 isAnonymous: { type: boolean }
                 contactName: { type: string }
                 contactPhone: { type: string }
@@ -331,6 +332,7 @@ paths:
                 building: { type: string }
                 apartment: { type: string }
                 type: { type: string, enum: [NOISE, MAINTENANCE, SECURITY, OTHER] }
+                assignedTo: { type: string }
                 isAnonymous: { type: boolean }
                 contactName: { type: string }
                 contactPhone: { type: string }
@@ -516,4 +518,3 @@ paths:
               schema:
                 type: array
                 items: { $ref: '#/components/schemas/User' }
-
