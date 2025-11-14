@@ -2,6 +2,26 @@ import { createPool, Pool } from 'mysql2/promise'
 
 export let pool: Pool
 
+export function parseJsonColumn<T>(value: any, defaultValue: T): T {
+  if (value === null || value === undefined) return defaultValue
+  if (Buffer.isBuffer(value)) {
+    try {
+      return JSON.parse(value.toString('utf8')) as T
+    } catch {
+      return defaultValue
+    }
+  }
+  if (typeof value === 'string') {
+    if (!value.trim()) return defaultValue
+    try {
+      return JSON.parse(value) as T
+    } catch {
+      return defaultValue
+    }
+  }
+  return value as T
+}
+
 export async function initDb() {
   const host = process.env.DB_HOST || 'localhost'
   const port = Number(process.env.DB_PORT || 3307)
@@ -76,8 +96,8 @@ export function rowToResident(row: any) {
     note: row.note || undefined,
     createdAt: new Date(row.created_at).toISOString(),
     avatarUrl: row.avatar_url || undefined,
-    images: row.images ? JSON.parse(row.images) : [],
-    members: row.members ? JSON.parse(row.members) : [],
+    images: parseJsonColumn(row.images, [] as any[]),
+    members: parseJsonColumn(row.members, [] as any[]),
   }
 }
 
@@ -96,7 +116,7 @@ export function rowToComplaint(row: any) {
     createdAt: new Date(row.created_at).toISOString(),
     updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : undefined,
     closedAt: row.closed_at ? new Date(row.closed_at).toISOString() : undefined,
-    attachments: row.attachments ? JSON.parse(row.attachments) : [],
-    stageAssignees: row.stage_assignees ? JSON.parse(row.stage_assignees) : {},
+    attachments: parseJsonColumn(row.attachments, [] as any[]),
+    stageAssignees: parseJsonColumn(row.stage_assignees, {} as Record<string, any>),
   }
 }

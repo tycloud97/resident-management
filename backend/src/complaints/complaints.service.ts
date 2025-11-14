@@ -3,7 +3,7 @@ import { CreateComplaintDto } from './dto/create-complaint.dto'
 import { UpdateStatusDto } from './dto/update-status.dto'
 import { AssignDto, AssignStageDto } from './dto/assign.dto'
 import { UpdateSeverityDto } from './dto/severity.dto'
-import { pool, rowToComplaint } from '../db/mysql'
+import { parseJsonColumn, pool, rowToComplaint } from '../db/mysql'
 import { randomUUID } from 'crypto'
 
 @Injectable()
@@ -90,7 +90,7 @@ export class ComplaintsService {
       performedBy: r.performed_by || undefined,
       authorName: r.author_name || undefined,
       isAnonymous: !!r.is_anonymous,
-      attachments: r.attachments ? JSON.parse(r.attachments) : [],
+      attachments: parseJsonColumn(r.attachments, [] as any[]),
       createdAt: new Date(r.created_at).toISOString(),
     }))
     return { complaint, logs }
@@ -133,7 +133,7 @@ export class ComplaintsService {
     const [rows] = await pool.query('SELECT stage_assignees FROM complaints WHERE id = ? LIMIT 1', [id])
     const row = (rows as any[])[0]
     if (!row) throw new NotFoundException()
-    const stageAssignees = row.stage_assignees ? JSON.parse(row.stage_assignees) : {}
+    const stageAssignees = parseJsonColumn(row.stage_assignees, {} as Record<string, any>)
     stageAssignees[dto.stage] = dto.assignedTo
     await pool.execute('UPDATE complaints SET stage_assignees = ?, updated_at = ? WHERE id = ?', [
       JSON.stringify(stageAssignees),
