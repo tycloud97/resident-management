@@ -148,14 +148,13 @@ inconsistent data.
 
 ### Backend
 
--   **Node.js + NestJS** (or Express)
+-   **Node.js + NestJS**
 -   RESTful API
 -   Authentication via **JWT**
 
 ### Database
 
--   **PostgreSQL**
--   ORM: **Prisma** or **TypeORM**
+-   **MySQL**
 
 ### Others
 
@@ -225,9 +224,9 @@ inconsistent data.
 
 ### MVP Deployment
 
--   Backend: Docker + Render/Railway/Fly.io
--   Frontend: Vercel/Netlify
--   Database: Managed PostgreSQL (Supabase/Railway)
+-   Backend: ECS
+-   Frontend: S3
+-   Database: RDS MySQL
 
 ### Scalability
 
