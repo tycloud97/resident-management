@@ -74,3 +74,11 @@
 ### Phase 5 – Finalization (2 days)
 - Review and refine UI/UX and accessibility.
 - Update documentation and clean up the codebase.
+
+---
+
+## 2.5 MVP scope and testing assumptions
+
+- Scope of work: build a working MVP that covers authentication, resident management, complaint management (end-to-end), and a simple dashboard as described above.
+- Non-functional focus: basic security (JWT, RBAC), acceptable performance for a single building, and clean, readable code.
+- Out of scope for the MVP: automated unit tests, integration tests, and end-to-end test suites. Verification will be done primarily via manual testing through the UI and a small set of API checks (e.g. with Postman).
